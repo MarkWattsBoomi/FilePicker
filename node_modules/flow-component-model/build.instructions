@@ -1,0 +1,6 @@
+1. change the build version number in package.json
+2. run tsc to build the js & .d.ts files 
+3. check changes into git
+4. run npm publish to push npm package
+
+Note !!! if adding more modules remember to add them to FlowComponentModel.tsx
