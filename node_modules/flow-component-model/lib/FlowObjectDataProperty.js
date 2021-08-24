@@ -31,7 +31,7 @@ var FlowObjectDataProperty = /** @class */ (function () {
         }
     }
     FlowObjectDataProperty.newInstance = function (developerName, contentType, value) {
-        var cv = "";
+        var cv;
         var objd = [];
         switch (contentType) {
             case FlowField_1.eContentType.ContentObject:
@@ -41,6 +41,12 @@ var FlowObjectDataProperty = /** @class */ (function () {
             case FlowField_1.eContentType.ContentList:
                 var oda = value;
                 objd = oda.iFlowObjectDataArray();
+                break;
+            case FlowField_1.eContentType.ContentNumber:
+                cv = value;
+                break;
+            case FlowField_1.eContentType.ContentNumber:
+                cv = value;
                 break;
             default:
                 cv = value;

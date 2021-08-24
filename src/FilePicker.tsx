@@ -96,11 +96,14 @@ export default class FilePicker extends FlowComponent {
             else {
 
                 if (this.isImage(typ)) {
-                    let imgSize: number = 200;
+                    let imgSize: number = 0;
                     if (parseInt(this.getAttribute('imageSize', '0')) > 0) {
                         imgSize = parseInt(this.getAttribute('imageSize', '0'));
                     }
-                    dataURL = await this.ResizeBase64Img(dataURL, imgSize);
+                    if(imgSize > 0) {
+                        dataURL = await this.ResizeBase64Img(dataURL, imgSize);
+                    }
+                    
                 }
 
                 let objData: any;
@@ -185,9 +188,9 @@ export default class FilePicker extends FlowComponent {
 
     render() {
 
-        if(this.loadingState !== eLoadingState.ready) {
-            return this.lastContent;
-        }
+        //if(this.loadingState !== eLoadingState.ready) {
+        //    return this.lastContent;
+        //}
 
         let classes: string = "file-picker " + this.getAttribute("classes","");
         let style: CSSProperties = {};
@@ -218,50 +221,53 @@ export default class FilePicker extends FlowComponent {
         let fileName: string;
         let extension: string;
         let content: any;
-        file = this.getStateValue() as FlowObjectData;
+        if(this.loadingState === eLoadingState.ready) {
+        
+            file = this.getStateValue() as FlowObjectData;
 
-        if (file) {
-            if (this.model.contentType === 'ContentString') {
-                mimeType = file.substring(file.indexOf(':') + 1, file.indexOf(';'));
-                fileContent = file;
-            } else {
-                // assume object
-                if(this.attributes["mimeTypeField"]) {
-                    mimeType = file.properties[this.getAttribute("mimeTypeField")].value;
+            if (file) {
+                if (this.model.contentType === 'ContentString') {
+                    mimeType = file.substring(file.indexOf(':') + 1, file.indexOf(';'));
+                    fileContent = file;
+                } else {
+                    // assume object
+                    if(this.attributes["mimeTypeField"]) {
+                        mimeType = file.properties[this.getAttribute("mimeTypeField")].value;
+                    }
+                    if(this.attributes["dataField"]) {
+                        fileContent = file.properties[this.getAttribute("dataField")].value;
+                    }
+                    if(this.attributes["fileNameField"]) {
+                        fileName = file.properties[this.getAttribute("fileNameField")].value;
+                    }
+                    if(this.attributes["extensionField"]) {
+                        extension = file.properties[this.getAttribute("extensionField")].value;
+                    }
                 }
-                if(this.attributes["dataField"]) {
-                    fileContent = file.properties[this.getAttribute("dataField")].value;
+                if (this.isImage(mimeType)) {
+                    content = (
+                        <img
+                            style={{
+                                maxHeight: '100%',
+                                maxWidth: '100%',
+                                width: 'auto',
+                                OObjectFit: 'cover',
+                            }}
+                            ref={(element: HTMLImageElement) => {this.img = element; }}
+                            className="file-picker-image"
+                            src={fileContent}
+                            onLoad={this.rescaleImage}
+                        />
+                    );
+                } else {
+                    content = (
+                        <span
+                            className="file-picker-file-name"
+                        >
+                            {fileName + '.' + extension}
+                        </span>
+                    );
                 }
-                if(this.attributes["fileNameField"]) {
-                    fileName = file.properties[this.getAttribute("fileNameField")].value;
-                }
-                if(this.attributes["extensionField"]) {
-                    extension = file.properties[this.getAttribute("extensionField")].value;
-                }
-            }
-            if (this.isImage(mimeType)) {
-                content = (
-                    <img
-                        style={{
-                            maxHeight: '100%',
-                            maxWidth: '100%',
-                            width: 'auto',
-                            OObjectFit: 'cover',
-                        }}
-                        ref={(element: HTMLImageElement) => {this.img = element; }}
-                        className="file-picker-image"
-                        src={fileContent}
-                        onLoad={this.rescaleImage}
-                    />
-                );
-            } else {
-                content = (
-                    <span
-                        className="file-picker-file-name"
-                    >
-                        {fileName + '.' + extension}
-                    </span>
-                );
             }
         }
 
