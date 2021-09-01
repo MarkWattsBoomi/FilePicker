@@ -1,8 +1,15 @@
 .file-picker
 {
     border: 2px solid black;
-    display: flex;
-    flex-direction: column;
+    display: block;
+    position: relative;
+    box-sizing: content-box;
+}
+
+.file-picker-transparent
+{
+    border: none;
+    display: block;
     position: relative;
     box-sizing: content-box;
 }
@@ -12,9 +19,21 @@
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
-    flex-grow: 0;
+    height: 2rem;
     background-color: #000000;
     color: #fefefe;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.file-picker-header-transparent
+{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    height: 2rem;
+    background-color: transparent;
+    color: #333;
     padding-top: 5px;
     padding-bottom: 5px;
 }
@@ -52,9 +71,13 @@
 .file-picker-body
 {
     background-color:#fefefe;
-    flex-grow: 1;
+    flex-grow: 0;
     display: flex;
     position: relative;
+    overflow: hidden;
+    height: calc(100% - 2rem);
+    width: 100%;
+    cursor: pointer;
 }
 
 
