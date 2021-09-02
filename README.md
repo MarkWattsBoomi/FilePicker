@@ -49,7 +49,7 @@ This will be used as the title bar of the Modal Dialog if the "title" attribute 
 
 ### State
 
-Either a simple string value to receive the selected file's data uir or a complex object where the file's attributes are mapped to object
+Either a simple string value to receive the selected file's dataURI or a complex object where the file's attributes are mapped to object
 properies via attribute.  See the Attributes section below.
 
 
