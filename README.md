@@ -22,9 +22,9 @@ NOTE: Visibility based on page conditions is respected.
 
 # FilePicker
 
-![alt text](https://github.com/MarkWattsBoomi/FilePicker/blob/main/standard.png)
+![alt text](https://github.com/MarkWattsBoomi/FilePicker/blob/master/standard.png)
 
-![alt text](https://github.com/MarkWattsBoomi/FilePicker/blob/main/transparent.png)
+![alt text](https://github.com/MarkWattsBoomi/FilePicker/blob/master/transparent.png)
 
 
 ## Functionality
