@@ -23,9 +23,10 @@ NOTE: Visibility based on page conditions is respected.
 # FilePicker
 
 ![alt text](https://github.com/MarkWattsBoomi/FilePicker/blob/master/standard.png)
+Standard
 
 ![alt text](https://github.com/MarkWattsBoomi/FilePicker/blob/master/transparent.png)
-
+Transparent (transparent attribute set)
 
 ## Functionality
 
