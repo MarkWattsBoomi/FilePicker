@@ -206,11 +206,22 @@ export default class FilePicker extends React.Component<any,any> {
                         } 
                     }
                     if(objData) {
-                        manywho.utils.setObjectDataProperty(objData.properties,model.attributes?.fileNameField,fname);
-                        manywho.utils.setObjectDataProperty(objData.properties,model.attributes?.extensionField,ext);
-                        manywho.utils.setObjectDataProperty(objData.properties,model.attributes?.mimeTypeField,typ);
-                        manywho.utils.setObjectDataProperty(objData.properties,model.attributes?.sizeField,size);
-                        manywho.utils.setObjectDataProperty(objData.properties,model.attributes?.dataField,dataURL);
+                        if(objData.properties,model.attributes?.fileNameField){
+                            manywho.utils.setObjectDataProperty(objData.properties,model.attributes?.fileNameField,fname);
+                        }
+                        if(objData.properties,model.attributes?.extensionField){
+                            manywho.utils.setObjectDataProperty(objData.properties,model.attributes?.extensionField,ext);
+                        }
+                        if(objData.properties,model.attributes?.mimeTypeField){
+                            manywho.utils.setObjectDataProperty(objData.properties,model.attributes?.mimeTypeField,typ);
+                        }
+                        if(objData.properties,model.attributes?.sizeField){
+                            manywho.utils.setObjectDataProperty(objData.properties,model.attributes?.sizeField,size);
+                        }
+                        if(objData.properties,model.attributes?.dataField){
+                            manywho.utils.setObjectDataProperty(objData.properties,model.attributes?.dataField,dataURL);
+                        }
+                        
                     }
                     //objectData.isSelected=true;
                     manywho.state.setComponent(this.props.id, {objectData: [objData]}, this.props.flowKey,true);
@@ -359,8 +370,8 @@ export default class FilePicker extends React.Component<any,any> {
             }
 
             if(objData) {
-                fileName = manywho.utils.getObjectDataProperty(objData.properties,model.attributes["fileNameField"]).contentValue;
-                fileContent = manywho.utils.getObjectDataProperty(objData.properties,model.attributes["dataField"]).contentValue;
+                fileName = manywho.utils.getObjectDataProperty(objData.properties,model.attributes["fileNameField"])?.contentValue;
+                fileContent = manywho.utils.getObjectDataProperty(objData.properties,model.attributes["dataField"])?.contentValue;
             }
         }
         
