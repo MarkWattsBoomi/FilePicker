@@ -145,6 +145,7 @@ export default class FilePicker extends React.Component<any,any> {
             case 'image/gif':
             case 'image/giff':
             case 'image/png':
+            case 'image/webp':
                 return true;
 
             default:
@@ -343,7 +344,7 @@ export default class FilePicker extends React.Component<any,any> {
 
         
         if(model.contentType === "ContentString") {
-            content=state.contentValue;
+            fileContent=state.contentValue;
         }
         else {
             let objData: any;
