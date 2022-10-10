@@ -105,3 +105,26 @@
     font-size: 2vh;
     margin: auto;
 }
+
+.file-picker-button {
+    background-color: #ccc;
+    border: 1px solid #aaa;
+    border-radius: 0.2rem;
+    padding: 0.5rem 1rem 0.5rem 1rem;
+    cursor: pointer;
+    color: #000;
+}
+
+.file-picker-filename {
+    color: #000;
+    padding: 0.5rem 1rem 0.5rem 1rem;
+    font-size: 1rem;
+    vertical-align: middle;
+}
+
+.file-picker-clear {
+    font-size: 1.2rem;
+    color: #c33c3c;
+    vertical-align: middle;
+    cursor: pointer;
+}

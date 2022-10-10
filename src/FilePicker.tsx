@@ -12,7 +12,9 @@ export default class FilePicker extends React.Component<any,any> {
     imgDiv: any;
     img: any;
     text: string = '';
-    fileInput: any;
+    fileInput: HTMLInputElement;
+    mode: string;
+    fileTypes: string[];
 
     messageBox: DialogBox;
 
@@ -25,13 +27,19 @@ export default class FilePicker extends React.Component<any,any> {
         this.ResizeBase64Img = this.ResizeBase64Img.bind(this);
         this.clearFile = this.clearFile.bind(this);
         this.pickFile = this.pickFile.bind(this);
+        this.chooseFile = this.chooseFile.bind(this);
         this.isImage = this.isImage.bind(this);
         this.rescaleImage = this.rescaleImage.bind(this);
         this.flowMoved = this.flowMoved.bind(this);
+        this.chooseFile = this.chooseFile.bind(this);
+
+        let model = manywho.model.getComponent(this.props.id, this.props.flowKey);
+        this.mode = model.attributes?.mode || "default";
+        this.fileTypes = model.attributes?.allowed?.split(",") || ["*"];
 
         this.state={
             imgData: undefined,
-            fileName: undefined
+            file: undefined,
         }
 
     }
@@ -53,6 +61,7 @@ export default class FilePicker extends React.Component<any,any> {
     async componentDidMount() {
         //(manywho as any).eventManager.addDoneListener(this.flowMoved, this.props.id);
         await this.preserveState();
+        await this.clearFile(true);
         this.forceUpdate();
     }
 
@@ -89,14 +98,16 @@ export default class FilePicker extends React.Component<any,any> {
         }
     }
 
-    componentWillReceiveProps(nextProps: any) {
-        console.log("ping");
-    }
+    
+    async clearFile(notify: boolean = true) {
+        console.log("clear file");
+        this.setState({
+            imgData: undefined,
+            file: undefined,
+        });
 
-    async clearFile() {
         let model = manywho.model.getComponent(this.props.id, this.props.flowKey);
         
-
         let newState : any = {};
         if (model.contentType === 'ContentString') {
             manywho.state.setComponent(this.props.id, {contentValue: ""}, this.props.flowKey,true);
@@ -129,8 +140,26 @@ export default class FilePicker extends React.Component<any,any> {
             }
             manywho.state.setComponent(this.props.id, {objectData: [objData]}, this.props.flowKey,true);
         }
-        manywho.component.handleEvent(this, model, this.props.flowKey);
+        if (model.attributes?.onCleared && model.attributes.onCleared.length > 0) {
+            let outcomes: any = manywho.model.getOutcomes(this.props.id,this.props.flowKey);
+            let closeOutcome: any = outcomes.find((outcome: any) => outcome.developerName === model.attributes.onCleared);
+            if(closeOutcome) {
+                await manywho.component.onOutcome(closeOutcome, null, this.props.flowKey);
+            }
+            else {
+                if(notify === true) {
+                    manywho.component.handleEvent(this, model, this.props.flowKey);
+                }
+            }
+        }
+        else {
+            if(notify === true) {
+                manywho.component.handleEvent(this, model, this.props.flowKey);
+            }
+        }
+        
     }
+
 
     pickFile() {
         this.fileInput.value = '';
@@ -153,8 +182,163 @@ export default class FilePicker extends React.Component<any,any> {
         }
     }
 
+ 
+    async chooseFile(e: any) {
+
+        let pickerOpts: any = {
+            types: [],
+            excludeAcceptAllOption: true,
+            multiple: false,
+          };
+
+        let model = manywho.model.getComponent(this.props.id, this.props.flowKey);
+        let attr: string = model.attributes?.extensions || "*";
+        let types: string[] = attr.split(",");
+        types.forEach((type: string) => {
+            type=type.trim().toLowerCase();
+            switch(type){
+                case "*":
+                    pickerOpts.excludeAcceptAllOption = false;
+                    break;
+                case "csv":
+                    pickerOpts.types.push(
+                    {
+                        description: 'CSV Files',
+                        accept: {
+                            'text/csv': ['.csv'],
+                        },
+                        },
+                    );
+                    break;
+                case "xlsx":
+                    pickerOpts.types.push(
+                    {
+                        description: 'Excel Files',
+                        accept: {
+                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsz'],
+                        },
+                        },
+                    );
+                    break;
+            }
+        });
+        
+        try{
+            let handle: any[] = await (window as any).showOpenFilePicker(pickerOpts);
+            if(handle[0].kind === 'file') {
+                let file = await handle[0].getFile();
+                let data = await this.fileReadAsDataURL(file);
+                this.setState({file: file, imageData: data});
+            }
+        }
+        catch(e) {
+            console.log(e);
+        }
+        finally{
+            console.log("done");
+            await this.fileChosen();
+        }
+    }
+
+    async fileChosen() {
+        if (this.state.file?.name?.length > 0) {
+            let model = manywho.model.getComponent(this.props.id, this.props.flowKey);           
+            const fname: string = this.state.file.name.lastIndexOf('.') >= 0 ? this.state.file.name.substring(0, this.state.file.name.lastIndexOf('.')) : this.state.file.name;
+            const ext: string = this.state.file.name.lastIndexOf('.') >= 0 ? this.state.file.name.substring(this.state.file.name.lastIndexOf('.') + 1).toLowerCase() : '';
+            const typ: string = this.state.file.type;
+            const size: number = this.state.file.size;
+            let dataURL: string = this.state.imageData;
+
+            let maxSize: number = parseInt(model.attributes["maxSizeKB"] || 0);
+            if(maxSize>0 && size>(maxSize * 1000)){
+                this.messageBox.showDialog(
+                    "File Too Large",
+                    (<span>The file you have chosen is { size } bytes long and exceeds the maximum file size of { maxSize }</span>),
+                    [new modalDialogButton("Ok",this.messageBox.hideDialog)]
+                );
+            }
+            else {
+
+                if (this.isImage(typ)) {
+                    let imgSize: number = 0;
+                    if (parseInt(model.attributes['imageSize'] || '0') > 0) {
+                        imgSize = parseInt(model.attributes['imageSize']);
+                    }
+                    if(imgSize > 0) {
+                        dataURL = await this.ResizeBase64Img(dataURL, imgSize);
+                    }
+                    
+                }
+
+                let newState : any = {};
+                if (model.contentType === 'ContentString') {
+                    manywho.state.setComponent(this.props.id, {contentValue: dataURL}, this.props.flowKey,true);
+                }
+                else {
+                    let state = manywho.state.getComponent(this.props.id, this.props.flowKey);
+                    let objData: any;
+                    
+                    if(state.objectData && state.objectData instanceof Array) {
+                        objData = state.objectData[0];
+                    }
+                    else {
+                        objData = state.objectData;
+                    }
+                    if(!objData){
+                        if(model.objectData && model.objectData instanceof Array) {
+                            objData = model.objectData[0];
+                        }
+                        else {
+                            objData = model.objectData;
+                        } 
+                    }
+                    if(objData) {
+                        if(objData.properties,model.attributes?.fileNameField){
+                            manywho.utils.setObjectDataProperty(objData.properties,model.attributes?.fileNameField,fname);
+                        }
+                        if(objData.properties,model.attributes?.extensionField){
+                            manywho.utils.setObjectDataProperty(objData.properties,model.attributes?.extensionField,ext);
+                        }
+                        if(objData.properties,model.attributes?.mimeTypeField){
+                            manywho.utils.setObjectDataProperty(objData.properties,model.attributes?.mimeTypeField,typ);
+                        }
+                        if(objData.properties,model.attributes?.sizeField){
+                            manywho.utils.setObjectDataProperty(objData.properties,model.attributes?.sizeField,size);
+                        }
+                        if(objData.properties,model.attributes?.dataField){
+                            manywho.utils.setObjectDataProperty(objData.properties,model.attributes?.dataField,dataURL);
+                        }
+                        
+                    }
+                    //objectData.isSelected=true;
+                    manywho.state.setComponent(this.props.id, {objectData: [objData]}, this.props.flowKey,true);
+                }
+                
+                
+                
+                if (model.attributes?.onSelected && model.attributes.onSelected.length > 0) {
+                    let selectedValue: string = model.attributes.onSelected;
+                    let outcomes: any = manywho.model.getOutcomes(this.props.id,this.props.flowKey);
+                    let closeOutcome: any = outcomes.find((outcome: any) => {
+                        return outcome.developerName === selectedValue
+                    });
+                    if(closeOutcome) {
+                        await manywho.component.onOutcome(closeOutcome, null, this.props.flowKey);
+                    }
+                    else {
+                        manywho.component.handleEvent(this, model, this.props.flowKey);
+                    }
+                }
+                else {
+                    manywho.component.handleEvent(this, model, this.props.flowKey);
+                }
+            }
+        }
+    }
+
     async fileSelected(e: any) {
-        if (this.fileInput.files && this.fileInput.files.length > 0) {
+
+        if (this.fileInput.value.length > 0) {
             let model = manywho.model.getComponent(this.props.id, this.props.flowKey);
             const file: File = this.fileInput.files[0];
             let dataURL: string = await this.fileReadAsDataURL(file);
@@ -231,19 +415,25 @@ export default class FilePicker extends React.Component<any,any> {
                 
                 
                 if (model.attributes?.onSelected && model.attributes.onSelected.length > 0) {
+                    let selectedValue: string = model.attributes.onSelected;
                     let outcomes: any = manywho.model.getOutcomes(this.props.id,this.props.flowKey);
-                    let closeOutcome: any = outcomes.find((outcome: any) => outcome.value === model.attributes.onSelected);
+                    let closeOutcome: any = outcomes.find((outcome: any) => {
+                        return outcome.developerName === selectedValue
+                    });
                     if(closeOutcome) {
                         await manywho.component.onOutcome(closeOutcome, null, this.props.flowKey);
+                    }
+                    else {
+                        manywho.component.handleEvent(this, model, this.props.flowKey);
                     }
                 }
                 else {
                     manywho.component.handleEvent(this, model, this.props.flowKey,);
                 }
-                
-
             }
-
+        }
+        else {
+            this.clearFile(true);
         }
     }
 
@@ -290,6 +480,75 @@ export default class FilePicker extends React.Component<any,any> {
     }
 
     render() {
+
+        let model = manywho.model.getComponent(this.props.id, this.props.flowKey);
+
+        switch(this.mode) {
+            case "default":
+                return this.defaultRender();
+            case "basic":
+                return this.basicRender();
+        }
+    }
+
+    basicRender() {
+        let allowed: string = "";
+        this.fileTypes.forEach((type: string) => {
+            if(allowed.length>0){
+                allowed += ","
+            }
+            if(!type.startsWith(".")) {
+                allowed+=".";
+            }
+            allowed+=type;
+        });
+
+        let style: CSSProperties = {};
+        let model = manywho.model.getComponent(this.props.id, this.props.flowKey);
+
+        if(model.isVisible === false) {
+            style.display = "none";
+        }
+        if(model.width) {
+            style.width=model.width + "px"
+        }
+        if(model.height) {
+            style.height=model.height + "px"
+        }
+
+        let clearButton: any;
+        if(this.state.file) {
+            clearButton = (
+                <span
+                    className="glyphicon glyphicon-remove-circle file-picker-clear"
+                    onClick={(e: any) => {this.clearFile(true)}}
+                    title="Clear file selection"
+                />
+            );
+        }
+
+        return (
+            <div
+                style={style}
+                id={this.props.id}
+            >
+                <span
+                    onClick={this.chooseFile}
+                    className="file-picker-button"
+                >
+                    Choose file
+                </span>
+                <span
+                    className="file-picker-filename"
+                >
+                    {this.state.file?.name}
+                </span>
+                {clearButton}
+            </div>
+        );
+    }
+
+    defaultRender() {
         let model = manywho.model.getComponent(this.props.id, this.props.flowKey);
         let state = manywho.state.getComponent(this.props.id, this.props.flowKey);
 
@@ -329,7 +588,7 @@ export default class FilePicker extends React.Component<any,any> {
         clearButton = (
             <span 
                 className="glyphicon glyphicon-remove file-picker-header-button" 
-                onClick={this.clearFile}
+                onClick={(e: any) => {this.clearFile(true)}}
                 title="Clear selected file"
             />
         );
