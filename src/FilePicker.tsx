@@ -220,6 +220,16 @@ export default class FilePicker extends React.Component<any,any> {
                         },
                     );
                     break;
+                case "xml":
+                    pickerOpts.types.push(
+                    {
+                        description: 'XML Files',
+                        accept: {
+                            'application/xhtml+xml': ['.xml'],
+                        },
+                        },
+                    );
+                    break;
             }
         });
         
