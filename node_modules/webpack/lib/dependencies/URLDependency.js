@@ -22,10 +22,12 @@ const ModuleDependency = require("./ModuleDependency");
 /** @typedef {import("../ModuleGraph")} ModuleGraph */
 /** @typedef {import("../ModuleGraphConnection")} ModuleGraphConnection */
 /** @typedef {import("../ModuleGraphConnection").ConnectionState} ConnectionState */
+/** @typedef {import("../serialization/ObjectMiddleware").ObjectDeserializerContext} ObjectDeserializerContext */
+/** @typedef {import("../serialization/ObjectMiddleware").ObjectSerializerContext} ObjectSerializerContext */
 /** @typedef {import("../util/Hash")} Hash */
 /** @typedef {import("../util/runtime").RuntimeSpec} RuntimeSpec */
 
-const getRawModule = memoize(() => require("../RawModule"));
+const getRawDataUrlModule = memoize(() => require("../asset/RawDataUrlModule"));
 
 class URLDependency extends ModuleDependency {
 	/**
@@ -68,15 +70,13 @@ class URLDependency extends ModuleDependency {
 	 * @returns {Module} a module
 	 */
 	createIgnoredModule(context) {
-		const RawModule = getRawModule();
-		return new RawModule(
-			'module.exports = "data:,";',
-			`ignored-asset`,
-			`(ignored asset)`,
-			new Set([RuntimeGlobals.module])
-		);
+		const RawDataUrlModule = getRawDataUrlModule();
+		return new RawDataUrlModule("data:,", `ignored-asset`, `(ignored asset)`);
 	}
 
+	/**
+	 * @param {ObjectSerializerContext} context context
+	 */
 	serialize(context) {
 		const { write } = context;
 		write(this.outerRange);
@@ -85,6 +85,9 @@ class URLDependency extends ModuleDependency {
 		super.serialize(context);
 	}
 
+	/**
+	 * @param {ObjectDeserializerContext} context context
+	 */
 	deserialize(context) {
 		const { read } = context;
 		this.outerRange = read();

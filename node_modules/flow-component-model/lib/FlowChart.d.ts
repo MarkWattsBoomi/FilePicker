@@ -28,6 +28,7 @@ export declare class FlowChart extends FlowBaseComponent {
     beginChartsApi(): void;
     apiLoaded(): void;
     buildData(dataTable: any[]): void;
+    manipulateDataTable(google: any, dataTable: any): void;
     drawChart(): void;
     render(): JSX.Element;
 }

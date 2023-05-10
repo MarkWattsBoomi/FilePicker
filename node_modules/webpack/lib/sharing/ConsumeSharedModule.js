@@ -25,6 +25,8 @@ const ConsumeSharedFallbackDependency = require("./ConsumeSharedFallbackDependen
 /** @typedef {import("../RequestShortener")} RequestShortener */
 /** @typedef {import("../ResolverFactory").ResolverWithOptions} ResolverWithOptions */
 /** @typedef {import("../WebpackError")} WebpackError */
+/** @typedef {import("../serialization/ObjectMiddleware").ObjectDeserializerContext} ObjectDeserializerContext */
+/** @typedef {import("../serialization/ObjectMiddleware").ObjectSerializerContext} ObjectSerializerContext */
 /** @typedef {import("../util/Hash")} Hash */
 /** @typedef {import("../util/fs").InputFileSystem} InputFileSystem */
 /** @typedef {import("../util/semver").SemVerRange} SemVerRange */
@@ -101,14 +103,16 @@ class ConsumeSharedModule extends Module {
 	 */
 	libIdent(options) {
 		const { shareKey, shareScope, import: request } = this.options;
-		return `webpack/sharing/consume/${shareScope}/${shareKey}${
+		return `${
+			this.layer ? `(${this.layer})/` : ""
+		}webpack/sharing/consume/${shareScope}/${shareKey}${
 			request ? `/${request}` : ""
 		}`;
 	}
 
 	/**
 	 * @param {NeedBuildContext} context context info
-	 * @param {function(WebpackError=, boolean=): void} callback callback function, returns true, if the module needs a rebuild
+	 * @param {function((WebpackError | null)=, boolean=): void} callback callback function, returns true, if the module needs a rebuild
 	 * @returns {void}
 	 */
 	needBuild(context, callback) {
@@ -210,6 +214,10 @@ class ConsumeSharedModule extends Module {
 			}
 			args.push(stringifyHoley(requiredVersion));
 			fn += "VersionCheck";
+		} else {
+			if (singleton) {
+				fn += "Singleton";
+			}
 		}
 		if (fallbackCode) {
 			fn += "Fallback";
@@ -224,12 +232,18 @@ class ConsumeSharedModule extends Module {
 		};
 	}
 
+	/**
+	 * @param {ObjectSerializerContext} context context
+	 */
 	serialize(context) {
 		const { write } = context;
 		write(this.options);
 		super.serialize(context);
 	}
 
+	/**
+	 * @param {ObjectDeserializerContext} context context
+	 */
 	deserialize(context) {
 		const { read } = context;
 		this.options = read();

@@ -5,12 +5,11 @@ const WriteFilePlugin = require('write-file-webpack-plugin');
 
 module.exports = function() {
     const config = {
-        entry: "./src/index.tsx",
+        entry: "./src/FlowComponentModel.tsx",
         output: {
             filename: "FlowComponentModel.min.js",
-            path: path.resolve(__dirname, 'lib')
+            path: path.resolve(__dirname, 'build')
         },
-        devtool: 'inline-source-map',
         resolve: {
             extensions: [".ts", ".tsx", ".js", ".json"],
         },
@@ -22,7 +21,7 @@ module.exports = function() {
             rules: [
                 { 
                     test: /\.tsx?$/, 
-                    loader: "awesome-typescript-loader" 
+                    loader: "ts-loader" 
                 },
                 { 
                     test: /\.js$/, 
@@ -48,8 +47,8 @@ module.exports = function() {
         ],
     }
 
-    if (!fs.existsSync('./lib'))
-        fs.mkdirSync('./lib');
+    if (!fs.existsSync('./build'))
+        fs.mkdirSync('./build');
 
     return config;
 };

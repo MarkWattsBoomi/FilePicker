@@ -16,6 +16,8 @@ const ModuleDependency = require("./ModuleDependency");
 /** @typedef {import("../Dependency").ReferencedExport} ReferencedExport */
 /** @typedef {import("../DependencyTemplate").DependencyTemplateContext} DependencyTemplateContext */
 /** @typedef {import("../ModuleGraph")} ModuleGraph */
+/** @typedef {import("../serialization/ObjectMiddleware").ObjectDeserializerContext} ObjectDeserializerContext */
+/** @typedef {import("../serialization/ObjectMiddleware").ObjectSerializerContext} ObjectSerializerContext */
 /** @typedef {import("../util/runtime").RuntimeSpec} RuntimeSpec */
 
 class CommonJsFullRequireDependency extends ModuleDependency {
@@ -51,6 +53,9 @@ class CommonJsFullRequireDependency extends ModuleDependency {
 		return [this.names];
 	}
 
+	/**
+	 * @param {ObjectSerializerContext} context context
+	 */
 	serialize(context) {
 		const { write } = context;
 		write(this.names);
@@ -59,6 +64,9 @@ class CommonJsFullRequireDependency extends ModuleDependency {
 		super.serialize(context);
 	}
 
+	/**
+	 * @param {ObjectDeserializerContext} context context
+	 */
 	deserialize(context) {
 		const { read } = context;
 		this.names = read();
@@ -108,15 +116,21 @@ CommonJsFullRequireDependency.Template = class CommonJsFullRequireDependencyTemp
 			weak: dep.weak,
 			runtimeRequirements
 		});
-		const ids = dep.names;
-		const usedImported = moduleGraph
-			.getExportsInfo(importedModule)
-			.getUsedName(ids, runtime);
-		if (usedImported) {
-			const comment = equals(usedImported, ids)
-				? ""
-				: Template.toNormalComment(propertyAccess(ids)) + " ";
-			requireExpr += `${comment}${propertyAccess(usedImported)}`;
+		if (importedModule) {
+			const ids = dep.names;
+			const usedImported = moduleGraph
+				.getExportsInfo(importedModule)
+				.getUsedName(ids, runtime);
+			if (usedImported) {
+				const comment = equals(usedImported, ids)
+					? ""
+					: Template.toNormalComment(propertyAccess(ids)) + " ";
+				const access = `${comment}${propertyAccess(usedImported)}`;
+				requireExpr =
+					dep.asiSafe === true
+						? `(${requireExpr}${access})`
+						: `${requireExpr}${access}`;
+			}
 		}
 		source.replace(dep.range[0], dep.range[1] - 1, requireExpr);
 	}

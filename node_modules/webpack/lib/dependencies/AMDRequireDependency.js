@@ -13,6 +13,8 @@ const NullDependency = require("./NullDependency");
 /** @typedef {import("../AsyncDependenciesBlock")} AsyncDependenciesBlock */
 /** @typedef {import("../Dependency")} Dependency */
 /** @typedef {import("../DependencyTemplate").DependencyTemplateContext} DependencyTemplateContext */
+/** @typedef {import("../serialization/ObjectMiddleware").ObjectDeserializerContext} ObjectDeserializerContext */
+/** @typedef {import("../serialization/ObjectMiddleware").ObjectSerializerContext} ObjectSerializerContext */
 
 class AMDRequireDependency extends NullDependency {
 	constructor(outerRange, arrayRange, functionRange, errorCallbackRange) {
@@ -30,6 +32,9 @@ class AMDRequireDependency extends NullDependency {
 		return "amd";
 	}
 
+	/**
+	 * @param {ObjectSerializerContext} context context
+	 */
 	serialize(context) {
 		const { write } = context;
 
@@ -43,6 +48,9 @@ class AMDRequireDependency extends NullDependency {
 		super.serialize(context);
 	}
 
+	/**
+	 * @param {ObjectDeserializerContext} context context
+	 */
 	deserialize(context) {
 		const { read } = context;
 
@@ -90,7 +98,7 @@ AMDRequireDependency.Template = class AMDRequireDependencyTemplate extends (
 		// has array range but no function range
 		if (dep.arrayRange && !dep.functionRange) {
 			const startBlock = `${promise}.then(function() {`;
-			const endBlock = `;}).catch(${RuntimeGlobals.uncaughtErrorHandler})`;
+			const endBlock = `;})['catch'](${RuntimeGlobals.uncaughtErrorHandler})`;
 			runtimeRequirements.add(RuntimeGlobals.uncaughtErrorHandler);
 
 			source.replace(dep.outerRange[0], dep.arrayRange[0] - 1, startBlock);
@@ -103,7 +111,7 @@ AMDRequireDependency.Template = class AMDRequireDependencyTemplate extends (
 		// has function range but no array range
 		if (dep.functionRange && !dep.arrayRange) {
 			const startBlock = `${promise}.then((`;
-			const endBlock = `).bind(exports, __webpack_require__, exports, module)).catch(${RuntimeGlobals.uncaughtErrorHandler})`;
+			const endBlock = `).bind(exports, __webpack_require__, exports, module))['catch'](${RuntimeGlobals.uncaughtErrorHandler})`;
 			runtimeRequirements.add(RuntimeGlobals.uncaughtErrorHandler);
 
 			source.replace(dep.outerRange[0], dep.functionRange[0] - 1, startBlock);
@@ -118,7 +126,7 @@ AMDRequireDependency.Template = class AMDRequireDependencyTemplate extends (
 			const startBlock = `${promise}.then(function() { `;
 			const errorRangeBlock = `}${
 				dep.functionBindThis ? ".bind(this)" : ""
-			}).catch(`;
+			})['catch'](`;
 			const endBlock = `${dep.errorCallbackBindThis ? ".bind(this)" : ""})`;
 
 			source.replace(dep.outerRange[0], dep.arrayRange[0] - 1, startBlock);
@@ -150,9 +158,9 @@ AMDRequireDependency.Template = class AMDRequireDependencyTemplate extends (
 		// has array range, function range, but no errorCallbackRange
 		if (dep.arrayRange && dep.functionRange) {
 			const startBlock = `${promise}.then(function() { `;
-			const endBlock = `}${dep.functionBindThis ? ".bind(this)" : ""}).catch(${
-				RuntimeGlobals.uncaughtErrorHandler
-			})`;
+			const endBlock = `}${
+				dep.functionBindThis ? ".bind(this)" : ""
+			})['catch'](${RuntimeGlobals.uncaughtErrorHandler})`;
 			runtimeRequirements.add(RuntimeGlobals.uncaughtErrorHandler);
 
 			source.replace(dep.outerRange[0], dep.arrayRange[0] - 1, startBlock);

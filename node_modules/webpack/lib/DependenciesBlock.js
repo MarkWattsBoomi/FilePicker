@@ -12,6 +12,8 @@ const makeSerializable = require("./util/makeSerializable");
 /** @typedef {import("./ChunkGroup")} ChunkGroup */
 /** @typedef {import("./Dependency")} Dependency */
 /** @typedef {import("./Dependency").UpdateHashContext} UpdateHashContext */
+/** @typedef {import("./serialization/ObjectMiddleware").ObjectDeserializerContext} ObjectDeserializerContext */
+/** @typedef {import("./serialization/ObjectMiddleware").ObjectSerializerContext} ObjectSerializerContext */
 /** @typedef {import("./util/Hash")} Hash */
 
 /** @typedef {(d: Dependency) => boolean} DependencyFilterFunction */
@@ -22,6 +24,15 @@ class DependenciesBlock {
 		this.dependencies = [];
 		/** @type {AsyncDependenciesBlock[]} */
 		this.blocks = [];
+		/** @type {DependenciesBlock} */
+		this.parent = undefined;
+	}
+
+	getRootBlock() {
+		/** @type {DependenciesBlock} */
+		let current = this;
+		while (current.parent) current = current.parent;
+		return current;
 	}
 
 	/**
@@ -79,11 +90,17 @@ class DependenciesBlock {
 		}
 	}
 
+	/**
+	 * @param {ObjectSerializerContext} context context
+	 */
 	serialize({ write }) {
 		write(this.dependencies);
 		write(this.blocks);
 	}
 
+	/**
+	 * @param {ObjectDeserializerContext} context context
+	 */
 	deserialize({ read }) {
 		this.dependencies = read();
 		this.blocks = read();

@@ -19,7 +19,64 @@ The FlowPage will automatically call getValues() on load.
 
 ### FlowChart
 
-This is an extension of the FlowComponent but adds the features of google charts allowing you to create a chart by simply setting the axis names and specifying which model data columns represent them.  For more complex data you can override the buildData() method.
+This is an extension of the FlowComponent but adds the features of google charts allowing you to create a chart by simply setting the axis names and specifying which model data columns represent them.  
+
+It's a very thin wrapper, anything in the options is simply passed through to the charts engine underneath.
+
+Define your chart options in the constructor().
+```
+constructor(props: any) {
+        super(props);
+        this.chartType = eFlowChartType.PieChart;
+        this.columnNames = ['Team Role', 'Count',{type: 'string', role: 'tooltip'}, { role: 'style' }];
+        //this.propertyNames = [new FlowChartColumnDefinition('driver', eContentType.ContentString), new FlowChartColumnDefinition('percent', eContentType.ContentNumber), new FlowChartColumnDefinition('percent', eContentType.ContentString)];
+        this.options = {
+            width: this.model.width || 600,
+            height: this.model.height || 600,
+            colors: ['#1338b0', '#c95b12','#828181','#e0ac58','#e0ac58'],
+            title: this.model.label || 'Opportunities By Role',
+            chartArea: {width: '100%', height: '85%'},
+            legend: { position: 'bottom', maxLines: 10 },
+            is3D: true,
+            pieSliceText: 'value',
+            hAxis: {
+                fontSize: 4,
+                title: 'Role',
+            },
+            vAxis: {
+                title: 'Count',
+            },
+        };
+
+    }
+```
+
+For more complex data you can override the buildData() method.
+
+We are adding arrays of column data to match the columnNames array in the constructor
+```
+buildData(dataTable: any[]) {
+        if (this.model.dataSource) {
+            dataTable.push(
+                [
+                    col1,
+                    col2,
+                    col3,
+                    '' ...
+                ]
+            );
+        }
+        
+    } 
+```
+
+To manipulate the data for formatting, override the manipulateDataTable() method.
+```
+manipulateDataTable(google: any, dataTable: any) {
+        let formatter = new (google as any).visualization.NumberFormat({prefix: '$ '});
+        formatter.format(dataTable,1)
+    }
+```
 
 ### FlowMessageBox & FlowDialogBox
 

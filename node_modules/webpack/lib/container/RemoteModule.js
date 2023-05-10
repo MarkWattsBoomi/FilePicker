@@ -23,6 +23,8 @@ const RemoteToExternalDependency = require("./RemoteToExternalDependency");
 /** @typedef {import("../RequestShortener")} RequestShortener */
 /** @typedef {import("../ResolverFactory").ResolverWithOptions} ResolverWithOptions */
 /** @typedef {import("../WebpackError")} WebpackError */
+/** @typedef {import("../serialization/ObjectMiddleware").ObjectDeserializerContext} ObjectDeserializerContext */
+/** @typedef {import("../serialization/ObjectMiddleware").ObjectSerializerContext} ObjectSerializerContext */
 /** @typedef {import("../util/Hash")} Hash */
 /** @typedef {import("../util/fs").InputFileSystem} InputFileSystem */
 
@@ -67,12 +69,14 @@ class RemoteModule extends Module {
 	 * @returns {string | null} an identifier for library inclusion
 	 */
 	libIdent(options) {
-		return `webpack/container/remote/${this.request}`;
+		return `${this.layer ? `(${this.layer})/` : ""}webpack/container/remote/${
+			this.request
+		}`;
 	}
 
 	/**
 	 * @param {NeedBuildContext} context context info
-	 * @param {function(WebpackError=, boolean=): void} callback callback function, returns true, if the module needs a rebuild
+	 * @param {function((WebpackError | null)=, boolean=): void} callback callback function, returns true, if the module needs a rebuild
 	 * @returns {void}
 	 */
 	needBuild(context, callback) {
@@ -147,6 +151,9 @@ class RemoteModule extends Module {
 		return { sources, data, runtimeRequirements: RUNTIME_REQUIREMENTS };
 	}
 
+	/**
+	 * @param {ObjectSerializerContext} context context
+	 */
 	serialize(context) {
 		const { write } = context;
 		write(this.request);

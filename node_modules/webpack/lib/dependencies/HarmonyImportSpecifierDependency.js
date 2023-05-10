@@ -23,10 +23,14 @@ const HarmonyImportDependency = require("./HarmonyImportDependency");
 /** @typedef {import("../ModuleGraphConnection")} ModuleGraphConnection */
 /** @typedef {import("../ModuleGraphConnection").ConnectionState} ConnectionState */
 /** @typedef {import("../WebpackError")} WebpackError */
+/** @typedef {import("../serialization/ObjectMiddleware").ObjectDeserializerContext} ObjectDeserializerContext */
+/** @typedef {import("../serialization/ObjectMiddleware").ObjectSerializerContext} ObjectSerializerContext */
 /** @typedef {import("../util/Hash")} Hash */
 /** @typedef {import("../util/runtime").RuntimeSpec} RuntimeSpec */
 
 const idsSymbol = Symbol("HarmonyImportSpecifierDependency.ids");
+
+const { ExportPresenceModes } = HarmonyImportDependency;
 
 class HarmonyImportSpecifierDependency extends HarmonyImportDependency {
 	constructor(
@@ -35,14 +39,14 @@ class HarmonyImportSpecifierDependency extends HarmonyImportDependency {
 		ids,
 		name,
 		range,
-		strictExportPresence,
+		exportPresenceMode,
 		assertions
 	) {
 		super(request, sourceOrder, assertions);
 		this.ids = ids;
 		this.name = name;
 		this.range = range;
-		this.strictExportPresence = strictExportPresence;
+		this.exportPresenceMode = exportPresenceMode;
 		this.namespaceObjectAsContext = false;
 		this.call = undefined;
 		this.directImport = undefined;
@@ -50,6 +54,8 @@ class HarmonyImportSpecifierDependency extends HarmonyImportDependency {
 		this.asiSafe = undefined;
 		/** @type {Set<string> | boolean} */
 		this.usedByExports = undefined;
+		/** @type {Set<string>} */
+		this.referencedPropertiesInDestructuring = undefined;
 	}
 
 	// TODO webpack 6 remove
@@ -119,7 +125,7 @@ class HarmonyImportSpecifierDependency extends HarmonyImportDependency {
 	 */
 	getReferencedExports(moduleGraph, runtime) {
 		let ids = this.getIds(moduleGraph);
-		if (ids.length === 0) return Dependency.EXPORTS_OBJECT_REFERENCED;
+		if (ids.length === 0) return this._getReferencedExportsInDestructuring();
 		let namespaceObjectAsContext = this.namespaceObjectAsContext;
 		if (ids[0] === "default") {
 			const selfModule = moduleGraph.getParentModule(this);
@@ -132,7 +138,8 @@ class HarmonyImportSpecifierDependency extends HarmonyImportDependency {
 			) {
 				case "default-only":
 				case "default-with-named":
-					if (ids.length === 1) return Dependency.EXPORTS_OBJECT_REFERENCED;
+					if (ids.length === 1)
+						return this._getReferencedExportsInDestructuring();
 					ids = ids.slice(1);
 					namespaceObjectAsContext = true;
 					break;
@@ -150,7 +157,39 @@ class HarmonyImportSpecifierDependency extends HarmonyImportDependency {
 			ids = ids.slice(0, -1);
 		}
 
-		return [ids];
+		return this._getReferencedExportsInDestructuring(ids);
+	}
+
+	/**
+	 * @param {string[]=} ids ids
+	 * @returns {(string[] | ReferencedExport)[]} referenced exports
+	 */
+	_getReferencedExportsInDestructuring(ids) {
+		if (this.referencedPropertiesInDestructuring) {
+			/** @type {ReferencedExport[]} */
+			const refs = [];
+			for (const key of this.referencedPropertiesInDestructuring) {
+				refs.push({
+					name: ids ? ids.concat([key]) : [key],
+					canMangle: false
+				});
+			}
+			return refs;
+		} else {
+			return ids ? [ids] : Dependency.EXPORTS_OBJECT_REFERENCED;
+		}
+	}
+
+	/**
+	 * @param {ModuleGraph} moduleGraph module graph
+	 * @returns {number} effective mode
+	 */
+	_getEffectiveExportPresenceLevel(moduleGraph) {
+		if (this.exportPresenceMode !== ExportPresenceModes.AUTO)
+			return this.exportPresenceMode;
+		return moduleGraph.getParentModule(this).buildMeta.strictHarmonyModule
+			? ExportPresenceModes.ERROR
+			: ExportPresenceModes.WARN;
 	}
 
 	/**
@@ -159,13 +198,11 @@ class HarmonyImportSpecifierDependency extends HarmonyImportDependency {
 	 * @returns {WebpackError[]} warnings
 	 */
 	getWarnings(moduleGraph) {
-		if (
-			this.strictExportPresence ||
-			moduleGraph.getParentModule(this).buildMeta.strictHarmonyModule
-		) {
-			return null;
+		const exportsPresence = this._getEffectiveExportPresenceLevel(moduleGraph);
+		if (exportsPresence === ExportPresenceModes.WARN) {
+			return this._getErrors(moduleGraph);
 		}
-		return this._getErrors(moduleGraph);
+		return null;
 	}
 
 	/**
@@ -174,10 +211,8 @@ class HarmonyImportSpecifierDependency extends HarmonyImportDependency {
 	 * @returns {WebpackError[]} errors
 	 */
 	getErrors(moduleGraph) {
-		if (
-			this.strictExportPresence ||
-			moduleGraph.getParentModule(this).buildMeta.strictHarmonyModule
-		) {
+		const exportsPresence = this._getEffectiveExportPresenceLevel(moduleGraph);
+		if (exportsPresence === ExportPresenceModes.ERROR) {
 			return this._getErrors(moduleGraph);
 		}
 		return null;
@@ -204,33 +239,41 @@ class HarmonyImportSpecifierDependency extends HarmonyImportDependency {
 		return 0;
 	}
 
+	/**
+	 * @param {ObjectSerializerContext} context context
+	 */
 	serialize(context) {
 		const { write } = context;
 		write(this.ids);
 		write(this.name);
 		write(this.range);
-		write(this.strictExportPresence);
+		write(this.exportPresenceMode);
 		write(this.namespaceObjectAsContext);
 		write(this.call);
 		write(this.directImport);
 		write(this.shorthand);
 		write(this.asiSafe);
 		write(this.usedByExports);
+		write(this.referencedPropertiesInDestructuring);
 		super.serialize(context);
 	}
 
+	/**
+	 * @param {ObjectDeserializerContext} context context
+	 */
 	deserialize(context) {
 		const { read } = context;
 		this.ids = read();
 		this.name = read();
 		this.range = read();
-		this.strictExportPresence = read();
+		this.exportPresenceMode = read();
 		this.namespaceObjectAsContext = read();
 		this.call = read();
 		this.directImport = read();
 		this.shorthand = read();
 		this.asiSafe = read();
 		this.usedByExports = read();
+		this.referencedPropertiesInDestructuring = read();
 		super.deserialize(context);
 	}
 }
@@ -251,14 +294,32 @@ HarmonyImportSpecifierDependency.Template = class HarmonyImportSpecifierDependen
 	 */
 	apply(dependency, source, templateContext) {
 		const dep = /** @type {HarmonyImportSpecifierDependency} */ (dependency);
-		const { moduleGraph, module, runtime, concatenationScope } =
-			templateContext;
+		const { moduleGraph, runtime } = templateContext;
 		const connection = moduleGraph.getConnection(dep);
 		// Skip rendering depending when dependency is conditional
 		if (connection && !connection.isTargetActive(runtime)) return;
 
 		const ids = dep.getIds(moduleGraph);
+		const exportExpr = this._getCodeForIds(dep, source, templateContext, ids);
+		const range = dep.range;
+		if (dep.shorthand) {
+			source.insert(range[1], `: ${exportExpr}`);
+		} else {
+			source.replace(range[0], range[1] - 1, exportExpr);
+		}
+	}
 
+	/**
+	 * @param {HarmonyImportSpecifierDependency} dep dependency
+	 * @param {ReplaceSource} source source
+	 * @param {DependencyTemplateContext} templateContext context
+	 * @param {string[]} ids ids
+	 * @returns {string} generated code
+	 */
+	_getCodeForIds(dep, source, templateContext, ids) {
+		const { moduleGraph, module, runtime, concatenationScope } =
+			templateContext;
+		const connection = moduleGraph.getConnection(dep);
 		let exportExpr;
 		if (
 			connection &&
@@ -289,7 +350,7 @@ HarmonyImportSpecifierDependency.Template = class HarmonyImportSpecifierDependen
 				);
 			}
 		} else {
-			super.apply(dependency, source, templateContext);
+			super.apply(dep, source, templateContext);
 
 			const { runtimeTemplate, initFragments, runtimeRequirements } =
 				templateContext;
@@ -310,11 +371,7 @@ HarmonyImportSpecifierDependency.Template = class HarmonyImportSpecifierDependen
 				runtimeRequirements
 			});
 		}
-		if (dep.shorthand) {
-			source.insert(dep.range[1], `: ${exportExpr}`);
-		} else {
-			source.replace(dep.range[0], dep.range[1] - 1, exportExpr);
-		}
+		return exportExpr;
 	}
 };
 

@@ -7,16 +7,13 @@ module.exports = function() {
         entry: './src/index.tsx',
         output: {
             filename: flow.filenames.js,
-            path: path.resolve(__dirname, 'build'),
-            sourceMapFilename: '[flow.filenames.js].map',
+            path: path.resolve(__dirname, 'build')
         },
-        devtool: 'inline-source-map',
         resolve: {
             extensions: ['.ts', '.tsx', '.js', '.json'],
         },
         devServer: {
-            contentBase: './build',
-            writeToDisk: true
+            static: './build',
         },
         mode: 'production',
         module: {

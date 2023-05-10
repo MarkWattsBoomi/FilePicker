@@ -23,6 +23,8 @@ const ProvideForSharedDependency = require("./ProvideForSharedDependency");
 /** @typedef {import("../RequestShortener")} RequestShortener */
 /** @typedef {import("../ResolverFactory").ResolverWithOptions} ResolverWithOptions */
 /** @typedef {import("../WebpackError")} WebpackError */
+/** @typedef {import("../serialization/ObjectMiddleware").ObjectDeserializerContext} ObjectDeserializerContext */
+/** @typedef {import("../serialization/ObjectMiddleware").ObjectSerializerContext} ObjectSerializerContext */
 /** @typedef {import("../util/Hash")} Hash */
 /** @typedef {import("../util/fs").InputFileSystem} InputFileSystem */
 
@@ -67,12 +69,14 @@ class ProvideSharedModule extends Module {
 	 * @returns {string | null} an identifier for library inclusion
 	 */
 	libIdent(options) {
-		return `webpack/sharing/provide/${this._shareScope}/${this._name}`;
+		return `${this.layer ? `(${this.layer})/` : ""}webpack/sharing/provide/${
+			this._shareScope
+		}/${this._name}`;
 	}
 
 	/**
 	 * @param {NeedBuildContext} context context info
-	 * @param {function(WebpackError=, boolean=): void} callback callback function, returns true, if the module needs a rebuild
+	 * @param {function((WebpackError | null)=, boolean=): void} callback callback function, returns true, if the module needs a rebuild
 	 * @returns {void}
 	 */
 	needBuild(context, callback) {
@@ -156,6 +160,9 @@ class ProvideSharedModule extends Module {
 		return { sources, data, runtimeRequirements };
 	}
 
+	/**
+	 * @param {ObjectSerializerContext} context context
+	 */
 	serialize(context) {
 		const { write } = context;
 		write(this._shareScope);

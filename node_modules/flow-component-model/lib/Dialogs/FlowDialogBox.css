@@ -1,4 +1,4 @@
-.modal-redaction 
+.fcm-modal-redaction 
 {
     display: flex;
     position: fixed;
@@ -14,7 +14,7 @@
     pointer-events: all;
   }
 
-  .modal
+  .fcm-modal
   {
     box-shadow: 0, 0, 5px, rgba(0, 0, 0, 0.2) !important;
     display: flex!important;
@@ -27,7 +27,7 @@
 
   }
 
-  .modal-content
+  .fcm-modal-content
   {
     position: absolute !important;
     border-radius: 2px !important;
@@ -43,7 +43,7 @@
 	opacity: 1;	
   }
 
-  .modal-close-button
+  .fcm-modal-close-button
   {
     position: fixed;
     top: 0;
@@ -58,7 +58,7 @@
     box-shadow: 0, 0, 0.625rem, rgba(0, 0, 0, 0.2);
   }
 
-.modal-close-button:before:after
+.fcm-modal-close-button:before:after
 {
     content: "";
     position: absolute;
@@ -69,21 +69,21 @@
     background-color: #888;
 }
 
-.modal-close-button:before
+.fcm-modal-close-button:before
 {
     transform: rotate(45deg);
 }
-.modal-close-button::after
+.fcm-modal-close-button::after
 {
     transform: rotate(-45deg);
 }
 
-.modal-close-button:hover:before:hover:after
+.fcm-modal-close-button:hover:before:hover:after
 {
     background-color: #444;
 }
 
-.modal-dialog
+.fcm-modal-dialog
 {
   margin: 0px !important;
   width: auto !important;
@@ -92,7 +92,7 @@
   background-color: antiquewhite;
 }
 
-.modal-dialog-header
+.fcm-modal-dialog-header
 {
     background-color: #007DB8;
     display: flex;
@@ -102,7 +102,7 @@
     border-bottom: 2px solid #666;
 }
 
-.modal-dialog-header-title
+.fcm-modal-dialog-header-title
 {
     color: #fefefe;
     font-size: 16pt;
@@ -119,7 +119,7 @@
     cursor: -webkit-grabbing;
 }
 
-.modal-dialog-header-button
+.fcm-modal-dialog-header-button
 {
     color: #fefefe;
     font-size: 12pt;
@@ -130,42 +130,42 @@
     margin-right: 5px ;
 }
 
-.modal-dialog-body
+.fcm-modal-dialog-body
 {
     width: 100%;
 }
 
-.modal-dialog-body-client
+.fcm-modal-dialog-body-client
 {
     margin:0px;
     overflow: auto;
     max-height: 600px;
 }
 
-.modal-dialog-input-row
+.fcm-modal-dialog-input-row
 {
     margin-left: 40px;
     margin-right: 40px;
     margin-bottom: 10px;
 }
 
-.modal-dialog-input-row:first-of-type 
+.fcm-modal-dialog-input-row:first-of-type 
 {
     margin-top: 20px;
 }
-.modal-dialog-input-row:last-of-type 
+.fcm-modal-dialog-input-row:last-of-type 
 {
     margin-bottom: 20px;
 }
 
-.modal-dialog-input-label
+.fcm-modal-dialog-input-label
 {
     margin-right: 20px;
     display: inline-block;
     font-size: 12pt;
 }
 
-.modal-dialog-input
+.fcm-modal-dialog-input
 {
     border: 1px solid #333333 !important;
     border-radius: 5px !important;
@@ -173,7 +173,7 @@
     font-size: 16pt !important;
 }
 
-.modal-dialog-button
+.fcm-modal-dialog-button
 {
     padding-left: 5px !important;
     font-size: 12pt !important;
@@ -181,7 +181,7 @@
     margin-left: 10px !important;
 }
 
-.modal-dialog-select
+.fcm-modal-dialog-select
 {
     font-size: 16pt !important;
     -webkit-appearance: listbox  !important;
@@ -190,7 +190,7 @@
     border-radius: 5px  !important;
 }
 
-.modal-dialog-file
+.fcm-modal-dialog-file
 {
     font-size: 16pt !important;
     padding: 5px  !important;
@@ -198,7 +198,7 @@
     border-radius: 5px  !important;
 }
 
-.modal-dialog-button-bar
+.fcm-modal-dialog-button-bar
 {
     border-top: 1px solid #968c8c;
     margin-top: 0px;
@@ -210,7 +210,7 @@
     padding-right: 10px;
 }
 
-.modal-dialog-button-bar-button
+.fcm-modal-dialog-button-bar-button
 {
     color: #fefefe !important;
     font-size: 12pt !important;
@@ -225,12 +225,12 @@
     padding-right: 20px;
 } 
 
-.modal-table
+.fcm-modal-table
 {
     width: 100%;
 }
 
-.modal-table-head
+.fcm-modal-table-head
 {
     background-color: rgb(105, 105, 105);
     color:#fefefe;
@@ -238,28 +238,28 @@
     font-weight: normal;
 }
 
-.modal-table-head-cell
+.fcm-modal-table-head-cell
 {
     padding-left: 5px;
 }
 
-.modal-table-head-cell-over
+.fcm-modal-table-head-cell-over
 {
     border: 1px solid rgb(240, 111, 111);
     border-left: 5px solid rgb(240, 111, 111);
     margin-left: 5px;
 }
 
-.modal-table-checkbox
+.fcm-modal-table-checkbox
 {
     margin: auto !important;
     -webkit-appearance: checkbox !important;
 }
-.modal-table-checkbox:before
+.fcm-modal-table-checkbox:before
 {
     display: none !important;
 }
-.modal-table-checkbox:after
+.fcm-modal-table-checkbox:after
 {
     display: none !important;
 }

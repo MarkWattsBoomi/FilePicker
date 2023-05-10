@@ -462,6 +462,21 @@ export default class FilePicker extends React.Component<any,any> {
         });
     }
 
+    async fileReadAsArrayBuffer(file: any): Promise<any> {
+        const reader = new FileReader();
+
+        return new Promise((resolve, reject) => {
+            reader.onerror = () => {
+                reader.abort();
+                reject(new DOMException('Problem reading file'));
+            };
+            reader.onload = () => {
+                resolve(reader.result);
+            };
+            reader.readAsArrayBuffer(file);
+        });
+    }
+
     async ResizeBase64Img(base64: string, width: number): Promise<any> {
 
         const img = new Image();
@@ -498,7 +513,41 @@ export default class FilePicker extends React.Component<any,any> {
                 return this.defaultRender();
             case "basic":
                 return this.basicRender();
+            case "icon":
+                return this.iconRender();
         }
+    }
+
+    iconRender() {
+        let style: CSSProperties = {};
+        let model = manywho.model.getComponent(this.props.id, this.props.flowKey);
+
+        if(model.isVisible === false) {
+            style.display = "none";
+        }
+
+        let classes: string = model.attributes?.classes || "";
+        
+        let icon = model.attributes?.icon || "open";
+        let iconClass: string = "file-picker-icon glyphicon glyphicon-" + icon;
+        
+        let iconStyle: CSSProperties = {};
+        iconStyle.fontSize = (model.width / 20) + "rem"
+
+        return (
+            <div
+                style={style}
+                className={classes}
+                id={this.props.id}
+            >
+                <span
+                    onClick={this.chooseFile}
+                    className={iconClass}
+                    style={iconStyle}
+                    title="Select a file"
+                />
+            </div>
+        );
     }
 
     basicRender() {

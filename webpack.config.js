@@ -7,16 +7,14 @@ module.exports = function() {
         entry: './src/index.tsx',
         output: {
             filename: flow.filenames.js,
-            path: path.resolve(__dirname, 'build'),
-            sourceMapFilename: '[flow.filenames.js].map',
+            path: path.resolve(__dirname, 'build')
         },
         devtool: 'inline-source-map',
         resolve: {
             extensions: ['.ts', '.tsx', '.js', '.json'],
         },
         devServer: {
-            contentBase: './build',
-            writeToDisk: true
+            static: './build'
         },
         mode: 'development',
         module: {
@@ -44,7 +42,6 @@ module.exports = function() {
             'react-dom': 'ReactDOM'
         },
         plugins: [
-            //new WriteFilePlugin(),
             new MiniCssExtractPlugin({ filename: flow.filenames.css })
         ],
     }
