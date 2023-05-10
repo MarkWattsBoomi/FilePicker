@@ -1,13 +1,13 @@
 import * as React from 'react';
 import './FilePicker.css';
-
-import './EventManager';
 import { CSSProperties } from 'react';
-import { DialogBox, modalDialogButton } from './DialogBox';
+import { FCMModal } from 'fcmkit';
+import { FCMModalButton } from 'fcmkit/lib/ModalDialog/FCMModalButton';
+import { FlowComponent } from 'flow-component-model';
 
 declare const manywho: any;
 
-export default class FilePicker extends React.Component<any,any> {
+export default class FilePicker extends FlowComponent {
     selectedItem: string = null;
     imgDiv: any;
     img: any;
@@ -16,7 +16,7 @@ export default class FilePicker extends React.Component<any,any> {
     mode: string;
     fileTypes: string[];
 
-    messageBox: DialogBox;
+    messageBox: FCMModal;
 
     lastContent: any = (<div></div>);
 
@@ -77,9 +77,7 @@ export default class FilePicker extends React.Component<any,any> {
         manywho.state.setComponent(this.props.id, newState, this.props.flowKey,true);
     }
 
-    componentWillUnmount() {
-        //(manywho as any).eventManager.removeDoneListener(this.props.id);
-    }
+    
     
 
     rescaleImage(e: any) {
@@ -262,9 +260,10 @@ export default class FilePicker extends React.Component<any,any> {
             let maxSize: number = parseInt(model.attributes["maxSizeKB"] || 0);
             if(maxSize>0 && size>(maxSize * 1000)){
                 this.messageBox.showDialog(
+                    null,
                     "File Too Large",
                     (<span>The file you have chosen is { size } bytes long and exceeds the maximum file size of { maxSize }</span>),
-                    [new modalDialogButton("Ok",this.messageBox.hideDialog)]
+                    [new FCMModalButton("Ok",this.messageBox.hideDialog)]
                 );
             }
             else {
@@ -360,9 +359,10 @@ export default class FilePicker extends React.Component<any,any> {
             let maxSize: number = parseInt(model.attributes["maxSizeKB"] || 0);
             if(maxSize>0 && size>(maxSize * 1000)){
                 this.messageBox.showDialog(
+                    null,
                     "File Too Large",
                     (<span>The file you have chosen is { size } bytes long and exceeds the maximum file size of { maxSize }</span>),
-                    [new modalDialogButton("Ok",this.messageBox.hideDialog)]
+                    [new FCMModalButton("Ok",this.messageBox.hideDialog)]
                 );
             }
             else {
@@ -766,8 +766,8 @@ export default class FilePicker extends React.Component<any,any> {
                     className={componentClass}
                     style={style}
                 >
-                    <DialogBox
-                        ref={(element: DialogBox) => {this.messageBox = element}}
+                    <FCMModal
+                        ref={(element: FCMModal) => {this.messageBox = element}}
                     />
                     <div className={headerClass}>
                         <div className="file-picker-header-left">
