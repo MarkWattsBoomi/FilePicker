@@ -1,24 +1,4 @@
 
-The latest version can be included in your player from this location: -
-
-```
-https://files-manywho-com.s3.amazonaws.com/e1dbcceb-070c-4ce6-95b0-ba282aaf4f48/filepicker.js
-https://files-manywho-com.s3.amazonaws.com/e1dbcceb-070c-4ce6-95b0-ba282aaf4f48/filepicker.css
-```
-
-A running demo can be seen here: -
-
-https://flow.manywho.com/270413cf-3d82-420b-8432-11bc064f50b4/play/FilePicker/?flow-id=e78b1df4-3429-4398-b9a4-292fbf9460fa
-
-
-A sharing token of that example flow is: -
-
-PTKVkulxkGk4tnk7Wv3g4jp4T0U4C8PzrEvntrLA5ZNd2xt0hOPPq14jTxRSYPie
-
-
-NOTE: Visibility based on page conditions is respected.
-
-
 
 # FilePicker
 
