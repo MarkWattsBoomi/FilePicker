@@ -155,3 +155,10 @@ String.
 
 The name of an outcome to trigger after successful selection of a file.
 
+### mode
+
+Set to "default", "basic" or "icon" to control the display style.
+
+### icon
+
+The name of a glyphicn to display for the button.
