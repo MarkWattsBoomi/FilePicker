@@ -78,13 +78,13 @@ manipulateDataTable(google: any, dataTable: any) {
     }
 ```
 
-### FlowMessageBox & FlowDialogBox
+### FlowMessageBox & FlowDialogBox & FlowContextMenu
 
-Implementations of modal popup windows to show information and present forms.
+Depricated.
 
-### FlowContextMenu
+Please use FCMKit instead.
 
-A self positioning context menu implementation allowing you to show a configurable list of clickable menu options.
+https://github.com/MarkWattsBoomi/FCMKit
 
 
 
@@ -273,11 +273,19 @@ A number of wrapper classes have been implemented to simplify interaction with v
 ## FlowObjectDataArray
 Wrappers the Flow list construct with helpers for adding, removing and finding objects.
 
+let myArray: FlowObjectDataArray = FlowObjectDataArray.newInstance([]);
+
 ## FlowObjectData
-Wrappers the objectData concept and provides helpers for creating & manipulating including adding properties
+Wrappers the objectData concept and provides helpers for creating & manipulating including adding properties.
+
+let myObjData: FlowObjectData = new FlowObjectData(iObjectData);  (pass in a generic Flow objectData);
+or
+let myObjData: FlowObjectData = FlowObjectData.newInstance("FlowTypeName");
 
 ## FlowObjectDataProperty
 A wrapper for working with FlowObjectData properties.
+let myObjData: FlowObjectData = FlowObjectData.newInstance("FlowTypeName");
+myObjData.addProperty(FlowObjectDataProperty.newInstance("AttributeName",eContentType.contentString, "The value"));
 
 ## FlowOutcome
 A wrapper round the outcome object
@@ -287,6 +295,11 @@ A simple wrapper around the attribute concept.
 
 ## FlowField
 A wrapper for working with values in a flow.
+Can access any value in the flow's state.
+
+let myField: await FlowField=this.loadValue("FlowValueName");
+myField.value="NewValue";
+await this.updateValue(myField);
 
 ## FlowDisplayColumn
 A wrapper to simplify the display columns in the model

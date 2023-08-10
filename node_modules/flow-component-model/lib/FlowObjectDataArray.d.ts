@@ -1,3 +1,4 @@
+import { FlowDisplayColumn } from './FlowDisplayColumn';
 import { FlowObjectData, IFlowObjectData } from './FlowObjectData';
 import { FlowObjectDataProperty } from './FlowObjectDataProperty';
 export declare enum eSortOrder {
@@ -9,6 +10,7 @@ export declare class FlowObjectDataArray {
     get items(): FlowObjectData[];
     sort(order: eSortOrder, fieldName?: string): FlowObjectData[];
     constructor(array?: IFlowObjectData[]);
+    static fromJSONString(json: string, primaryKey: string, columns: FlowDisplayColumn[], flowTypeName: string): FlowObjectDataArray;
     addItem(item: FlowObjectData): void;
     clearItems(): void;
     clone(): FlowObjectDataArray;

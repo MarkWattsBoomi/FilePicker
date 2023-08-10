@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FlowObjectDataArray = exports.eSortOrder = void 0;
 var FlowField_1 = require("./FlowField");
 var FlowObjectData_1 = require("./FlowObjectData");
+var FlowObjectDataProperty_1 = require("./FlowObjectDataProperty");
 var eSortOrder;
 (function (eSortOrder) {
     eSortOrder[eSortOrder["ascending"] = 0] = "ascending";
@@ -85,6 +86,35 @@ var FlowObjectDataArray = /** @class */ (function () {
                 return this.Items.sort(function (a, b) { return a.order - b.order; });
             }
         }
+    };
+    FlowObjectDataArray.fromJSONString = function (json, primaryKey, columns, flowTypeName) {
+        var objDataArray = new FlowObjectDataArray();
+        var model = JSON.parse(json);
+        model.forEach(function (item) {
+            var objData = FlowObjectData_1.FlowObjectData.newInstance(flowTypeName);
+            columns.forEach(function (col) {
+                var val = item[col.developerName];
+                if (col.developerName === primaryKey) {
+                    //objData.internalId = val;
+                    objData.externalId = val;
+                }
+                switch (col.contentType) {
+                    case FlowField_1.eContentType.ContentDateTime:
+                        val = new Date(val);
+                        break;
+                    case FlowField_1.eContentType.ContentNumber:
+                        val = parseFloat(val);
+                        break;
+                    case FlowField_1.eContentType.ContentBoolean:
+                        val = val === "true";
+                        break;
+                }
+                objData.addProperty(FlowObjectDataProperty_1.FlowObjectDataProperty.newInstance(col.developerName, col.contentType, val));
+                objData.properties[col.developerName].typeElementPropertyId = col.typeElementPropertyId;
+            });
+            objDataArray.addItem(objData);
+        });
+        return objDataArray;
     };
     FlowObjectDataArray.prototype.addItem = function (item) {
         this.Items.push(item);
